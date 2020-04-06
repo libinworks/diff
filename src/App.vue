@@ -18,6 +18,9 @@ dfh
 fh
 dfg`
     }
+  },
+  mounted () {
+    console.log(this.$diffJson(this.oldContent, this.newContent))
   }
 }
 </script>
