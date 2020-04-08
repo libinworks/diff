@@ -52,12 +52,13 @@ export default {
   },
   methods: {
     diffShow () {
-      var _this = this
-      var newStr = _this.newContent
-      var oldStr = _this.oldContent
-      var diffResult = diffJson(oldStr, newStr)
-      var removeObj = diffResult.remove
-      var addObj = diffResult.add
+      const _this = this
+      const newStr = _this.newContent
+      const oldStr = _this.oldContent
+      const diffResult = diffJson(oldStr, newStr)
+      this.$emit('diffJson', diffResult)
+      const removeObj = diffResult.remove
+      const addObj = diffResult.add
       _this.oldStr = diffAddSpan(removeObj, oldStr)
       _this.newStr = diffAddSpan(addObj, newStr)
 
@@ -74,6 +75,7 @@ export default {
   display: flex;
   height: 100%;
   font-size: 16px;
+  overflow: hidden;
 }
 .old_info, .new_info{
   flex: 1;

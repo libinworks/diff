@@ -251,7 +251,7 @@ export function markdownRestore(newStr, historyArr, index) {
 
 function canvasDataCreat(obj) {
     var removeObj = obj.remove
-    var addObj = obj.add
+    var addObj = Object.assign({}, obj.add)
     var cvObj = []
     var lPLen = document.getElementById('old_info').childElementCount - 1
     var rPLen = document.getElementById('new_info').childElementCount - 1
@@ -260,45 +260,109 @@ function canvasDataCreat(obj) {
         var row = removeObj[i]
         var rMax = i > rPLen ? rPLen : i
         var rMax1 = i + 1 > rPLen ? rPLen : i + 1
+        var lastNew = {}
         if (row.newRow) {
-            cvObj.push({
+            lastNew = {
                 lStartLine: i,
                 lEndLine: 1 + i,
                 rStartLine: rMax,
                 rEndLine: rMax
-            })
+            }
         } else {
-            cvObj.push({
+            lastNew = {
                 lStartLine: i,
                 lEndLine: 1 + i,
                 rStartLine: rMax,
                 rEndLine: rMax1
-            })
+            }
 
             if (addObj[i]) {
                 delete addObj[i]
             }
         }
+        cvObj.push(lastNew)
     }
     for (i in addObj) {
         i = Number(i)
         row = addObj[i]
         var lMax = i > lPLen ? lPLen : i
         var lMax1 = i + 1 > lPLen ? lPLen : i + 1
+        var lastNew = {}
         if (row.newRow) {
-            cvObj.push({
+            lastNew = {
                 lStartLine: lMax,
                 lEndLine: lMax,
                 rStartLine: i,
                 rEndLine: 1 + i
-            })
+            }
         } else {
-            cvObj.push({
+            lastNew = {
                 lStartLine: lMax,
                 lEndLine: lMax1,
                 rStartLine: i,
                 rEndLine: 1 + i
-            })
+            }
+        }
+        cvObj.push(lastNew)
+    }
+    for (i = 0; i >= 0 && i < cvObj.length - 1; i ++){
+        var fObj = cvObj[i]
+        for (var j = i + 1; j > 0 && j < cvObj.length; j ++ ) {
+            var sObj = cvObj[j]
+            var change = false
+            var spliceIndex = 0
+            if (sObj.lStartLine === fObj.lEndLine && sObj.rStartLine === fObj.rEndLine) {
+                fObj.lEndLine = sObj.lEndLine
+                fObj.rEndLine = sObj.rEndLine
+                spliceIndex = j
+                change = true
+            } else if (fObj.lStartLine === sObj.lEndLine && fObj.rStartLine === sObj.rEndLine) {
+                sObj.lEndLine = fObj.lEndLine
+                sObj.rEndLine = fObj.rEndLine
+                spliceIndex = i
+                change = true
+            } else if (fObj.lStartLine === sObj.lEndLine && sObj.rStartLine === sObj.rEndLine) {
+                // 删除整行
+                fObj.lStartLine = sObj.lStartLine
+                spliceIndex = j
+                change = true
+            } else if (fObj.lEndLine === sObj.lEndLine && sObj.rStartLine === sObj.rEndLine) {
+                fObj.lEndLine = sObj.lEndLine
+                spliceIndex = j
+                change = true
+            } else if (fObj.rEndLine === sObj.rStartLine && sObj.lStartLine === sObj.lEndLine) {
+                // 新增整行
+                fObj.rEndLine = sObj.rEndLine
+                spliceIndex = j
+                change = true
+            } else if (sObj.rEndLine === fObj.rStartLine && fObj.lStartLine === fObj.lEndLine) {
+                sObj.rEndLine = fObj.rEndLine
+                spliceIndex = i
+                change = true
+            } else if (fObj.rStartLine === sObj.rEndLine && sObj.lStartLine === sObj.lEndLine) {
+                fObj.rStartLine = sObj.rStartLine
+                spliceIndex = j
+                change = true
+            } else if (sObj.rStartLine === fObj.rEndLine && fObj.lStartLine === fObj.lEndLine) {
+                sObj.rStartLine = fObj.rStartLine
+                spliceIndex = i
+                change = true
+            } else if (sObj.lStartLine === fObj.lEndLine) {
+                fObj.rEndLine = sObj.rEndLine
+                spliceIndex = j
+                change = true
+            } else if (sObj.rStartLine === fObj.rEndLine) {
+                fObj.lEndLine = sObj.lEndLine
+                spliceIndex = j
+                change = true
+            }
+            if (change) {
+                spliceIndex = spliceIndex > -1 ? spliceIndex : 0
+                cvObj.splice(spliceIndex, 1)
+                i--
+                j--
+                change = false
+            }
         }
     }
 
