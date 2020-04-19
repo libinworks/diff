@@ -133,28 +133,25 @@ export function diffJson(oldObj, newObj) {
     }
     var match1 = lcsObj.match1
 	var match2 = lcsObj.match2
-
+	console.log(lcsObj)
     if (Array.isArray(oldObj) && Array.isArray(newObj)) {
 		var oldArr = []
 		var newArr = []
 		var lock = true
-		var i = 0
-		var j = 0
 		moduleBreak(oldObj, oldArr, match1)
 		moduleBreak(newObj, newArr, match2)
+		console.log(oldArr)
+		console.log(newArr)
 
 		if (newArr.length > oldArr.length) {
 			longEach(newArr)
 		} else {
 			longEach(oldArr)
 		}
-    } else if (typeof (oldObj) === 'string' && typeof (newObj) === 'string') {
-		differenceJson = diffString(differenceJson, oldObj, newObj)
-		canvasJson.diffLine[0] = 0
-	}
+    }
 
 	function moduleBreak (obj, arr, match) {
-		for (i = 0; i < obj.length; i++) {
+		for (var i = 0; i < obj.length; i++) {
 			if (match.indexOf(i) > -1) {
 				lock = true
 				continue
@@ -169,38 +166,50 @@ export function diffJson(oldObj, newObj) {
 		lock = true
 	}
 
-	function jsonJoin (line1, line2, arri, obj) {
-		if (line1 === 0 || line1) {
-			differenceJson.remove[line1] = { 'cols': {}, 'newRow': false }
-			differenceJson.add[line2] = { 'cols': {}, 'newRow': false }
-			differenceJson = diffString(differenceJson, oldObj[line1], newObj[line2], line1, line2)
-			canvasJson.diffLine[line1] = line2
-		} else {
-			differenceJson.add[line2] = { 'cols': { 0: obj[line2] }, 'newRow': true }
-			canvasJson.addLine[line2] = arri[arri.length - 1]
-		}
-	}
-
 	function longEach (arr) {
-		for (i = 0;i < arr.length;i ++) {
+		for (var i = 0;i < arr.length;i ++) {
 			var newArri = newArr[i] || []
 			var oldArri = oldArr[i] || []
 			if (newArri.length > oldArri.length) {
-				for (j = 0;j < newArri.length;j ++) {
+				for (var j = 0;j < newArri.length;j ++) {
 					var oldLine = oldArri[j]
 					var newLine = newArri[j]
-					jsonJoin(oldLine, newLine, oldArri, newObj)
+					jsonJoin(oldLine, newLine, oldArri, newObj, 'add')
 				}
 			} else {
-				for (j = 0;j < oldArri.length;j ++) {
+				for (var j = 0;j < oldArri.length;j ++) {
 					var oldLine = oldArri[j]
 					var newLine = newArri[j]
-					jsonJoin(newLine, oldLine, newArri, oldObj)
+					jsonJoin(newLine, oldLine, newArri, oldObj, 'remove')
 				}
 			}
 		}
 	}
-	
+
+	function jsonJoin (line1, line2, arri, obj, type) {
+		if (type === 'add') {
+			var oldLine = line1
+			var newLine = line2
+			var diffType = 'add'
+			var canType = 'addLine'
+		} else {
+			oldLine = line2
+			newLine = line1
+			diffType = 'remove'
+			canType = 'delLine'
+		}
+		if (line1 === 0 || line1) {
+			differenceJson.remove[oldLine] = { 'cols': {}, 'newRow': false }
+			differenceJson.add[newLine] = { 'cols': {}, 'newRow': false }
+			differenceJson = diffString(differenceJson, oldObj[oldLine], newObj[newLine], oldLine, newLine)
+			canvasJson.diffLine[oldLine] = newLine
+		} else {
+			differenceJson[diffType][line2] = { 'cols': { 0: obj[line2] }, 'newRow': true }
+			canvasJson[canType][line2] = arri[arri.length - 1]
+		}
+	}
+
+	console.log(differenceJson)
     return { differenceJson, canvasJson }
 }
 
@@ -294,8 +303,8 @@ function canvasDataCreat(obj) {
     var cvDiff = []
     var cvDel = []
     var cvAdd = []
-    var lPLen = document.getElementById('old_info').childElementCount - 1
-	var rPLen = document.getElementById('new_info').childElementCount - 1
+    var lPLen = document.getElementById('old_info').childElementCount
+	var rPLen = document.getElementById('new_info').childElementCount
 	for (var i in diffLine) {
 		var oldLine = Number(i)
 		var newLine = Number(diffLine[i])

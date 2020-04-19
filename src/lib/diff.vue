@@ -44,7 +44,8 @@ export default {
   data() {
     return {
       newStr: '',
-      oldStr: ''
+      oldStr: '',
+      canvasNum: 200
     }
   },
   mounted() {
@@ -62,11 +63,23 @@ export default {
       _this.oldStr = diffAddSpan(removeObj, oldStr)
       _this.newStr = diffAddSpan(addObj, newStr)
 
-      setTimeout(() => {
+      this.canvas(canvasJson)
+    },
+    canvas (canvasJson) {
+      var _this = this
+      try {
         diffScroll(canvasJson)
-      }, 500)
+        _this.canvasNum = 200
+      } catch (error) {
+        _this.canvasNum --
+        if (_this.canvasNum > 0) {
+          setTimeout(() => {
+            _this.canvas (canvasJson)
+          }, 50)
+        }
+      }
     }
-  },
+  }
 }
 </script>
 
@@ -101,15 +114,27 @@ export default {
   min-height: 28px;
 }
 .old_info .del_line{
+  display: flex;
+  flex-wrap: wrap;
   background-color: #fee8e9;
+  letter-spacing: 2px;
 }
 .old_info .del_line span{
+  display: inline-block;
+  min-width: 9px;
+  min-height: 28px;
   background-color: #ffb6ba !important;
 }
 .new_info .add_line{
+  display: flex;
+  flex-wrap: wrap;
   background-color: #dfd;
+  letter-spacing: 2px;
 }
 .new_info .add_line span{
+  display: inline-block;
+  min-width: 9px;
+  min-height: 28px;
   background-color: #97f295 !important;
 }
 </style>

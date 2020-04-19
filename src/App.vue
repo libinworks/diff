@@ -15,13 +15,20 @@ export default {
   data () {
     return {
       newContent: `sadfklj
-bbb      
+bbbbbbbbbbbbbbbbb     
+sdv
+wef
 aaa
 sg
+rg
 sdf`,
       oldContent: `sadmfklj111
 bb
 aa
+dfb
+sfd
+fff
+dfv
 fff
 sg
 dfh
@@ -30,11 +37,11 @@ dfg`
     }
   },
   mounted () {
-    // console.log(this.$diffJson(this.oldContent, this.newContent))
+    console.log(this.$diffJson(this.oldContent, this.newContent))
   },
   methods: {
     diffJson (r) {
-      // console.log(r)
+      console.log(r)
     }
   },
 }
