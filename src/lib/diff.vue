@@ -55,15 +55,15 @@ export default {
       const _this = this
       const newStr = _this.newContent
       const oldStr = _this.oldContent
-      const diffResult = diffJson(oldStr, newStr)
-      this.$emit('diffJson', diffResult)
-      const removeObj = diffResult.remove
-      const addObj = diffResult.add
+      const { differenceJson, canvasJson } = diffJson(oldStr, newStr)
+      this.$emit('diffJson', differenceJson)
+      const removeObj = differenceJson.remove
+      const addObj = differenceJson.add
       _this.oldStr = diffAddSpan(removeObj, oldStr)
       _this.newStr = diffAddSpan(addObj, newStr)
 
       setTimeout(() => {
-        diffScroll(diffResult)
+        diffScroll(canvasJson)
       }, 500)
     }
   },

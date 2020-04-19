@@ -80,10 +80,11 @@ export function LCS(oldObj, newObj) {
     }
 }
 
-function diffString(differenceJson, oldObj, newObj, line) {
+function diffString(differenceJson, oldObj, newObj, oldLine, newLine) {
     oldObj = oldObj || ''
     newObj = newObj || ''
-    line = line || 0
+    oldLine = oldLine || 0
+    newLine = newLine || 0
     var lcsObj = LCS(oldObj, newObj)
     if (!lcsObj) {
         return
@@ -99,27 +100,27 @@ function diffString(differenceJson, oldObj, newObj, line) {
     var i = 0
     for (i = 0; i < oldObj.length; i++) {
         if (match1.indexOf(i) < 0) {
-            differenceJson.remove[line].cols[i] = oldObj[i]
+			differenceJson.remove[oldLine].cols[i] = oldObj[i]
         }
     }
     for (i = 0; i < newObj.length; i++) {
         if (match2.indexOf(i) < 0) {
-            differenceJson.add[line].cols[i] = newObj[i]
+			differenceJson.add[newLine].cols[i] = newObj[i]
         }
     }
 
-    if (!Object.keys(differenceJson.remove[line].cols).length) {
-        delete differenceJson.remove[line]
+    if (!Object.keys(differenceJson.remove[oldLine].cols).length) {
+        delete differenceJson.remove[oldLine]
     }
-    if (!Object.keys(differenceJson.add[line].cols).length) {
-        delete differenceJson.add[line]
+    if (!Object.keys(differenceJson.add[newLine].cols).length) {
+        delete differenceJson.add[newLine]
     }
-
     return differenceJson
 }
 
 export function diffJson(oldObj, newObj) {
-    var differenceJson = { 'remove': {}, 'add': {} }
+	var differenceJson = { 'remove': {}, 'add': {} }
+	var canvasJson = { diffLine: {}, addLine: {}, delLine: {} }
     if (typeof oldObj === 'string') {
         oldObj = oldObj.split('\n')
     }
@@ -130,41 +131,107 @@ export function diffJson(oldObj, newObj) {
     if (!lcsObj) {
         return
     }
-    // var maxMatchLength = lcsObj.maxMatchLength
     var match1 = lcsObj.match1
-    var match2 = lcsObj.match2
+	var match2 = lcsObj.match2
+	function moduleBreak (obj, arr, match) {
+		for (i = 0; i < obj.length; i++) {
+			if (match.indexOf(i) > -1) {
+				lock = true
+				continue
+			}
+			if (lock) {
+				arr.push([i])
+				lock = false
+			} else {
+				arr[arr.length - 1].push(i)
+			}
+		}
+		lock = true
+	}
+	function jsonJoin (line1, line2, type1) {
+		if (line1 === 0 || line1) {
+			differenceJson.remove[line1] = { 'cols': {}, 'newRow': false }
+			differenceJson.add[line2] = { 'cols': {}, 'newRow': false }
+			differenceJson = diffString(differenceJson, oldObj[line1], newObj[line2], line1, line2)
+			canvasJson.diffLine[line1] = line2
+		} else {
+			var str = type1 === 'old' ? newObj[line2] : oldObj[line2]
+			differenceJson.add[line2] = { 'cols': { 0: str }, 'newRow': true }
+			canvasJson.addLine[line2] = oldArri[oldArri.length - 1]
+		}
+	}
     if (Array.isArray(oldObj) && Array.isArray(newObj)) {
-        var i = 0
-        if (oldObj.length > newObj.length) {
-            for (i = 0; i < oldObj.length; i++) {
-                if (match1.indexOf(i) < 0 && match2.indexOf(i) < 0) {
-                    differenceJson.remove[i] = { 'cols': {}, 'newRow': false }
-                    differenceJson.add[i] = { 'cols': {}, 'newRow': false }
-                    differenceJson = diffString(differenceJson, oldObj[i], newObj[i], i)
-                } else if (match1.indexOf(i) < 0 && match2.indexOf(i) >= 0) {
-                    differenceJson.remove[i] = { 'cols': { 0: oldObj[i] }, 'newRow': true }
-                } else if (match1.indexOf(i) >= 0 && match2.indexOf(i) < 0) {
-                    differenceJson.add[i] = { 'cols': { 0: newObj[i] }, 'newRow': true }
-                }
-            }
-        } else {
-            for (i = 0; i < newObj.length; i++) {
-                if (match2.indexOf(i) < 0 && match1.indexOf(i) < 0) {
-                    differenceJson.remove[i] = { 'cols': {}, 'newRow': false }
-                    differenceJson.add[i] = { 'cols': {}, 'newRow': false }
-                    differenceJson = diffString(differenceJson, oldObj[i], newObj[i], i)
-                } else if (match2.indexOf(i) < 0 && match1.indexOf(i) >= 0) {
-                    differenceJson.add[i] = { 'cols': { 0: newObj[i] }, 'newRow': true }
-                } else if (match2.indexOf(i) >= 0 && match1.indexOf(i) < 0) {
-                    differenceJson.remove[i] = { 'cols': { 0: oldObj[i] }, 'newRow': true }
-                }
-            }
-        }
-    } else if (typeof (oldObj) === 'string' && typeof (newObj) === 'string') {
-        differenceJson = diffString(differenceJson, oldObj, newObj)
-    }
+		var oldArr = []
+		var newArr = []
+		var lock = true
+		var i = 0
+		var j = 0
+		moduleBreak(oldObj, oldArr, match1)
+		moduleBreak(newObj, newArr, match2)
 
-    return differenceJson
+		console.log(oldArr,newArr)
+		if (newArr.length > oldArr.length) {
+			for (i = 0;i < newArr.length;i ++) {
+				var newArri = newArr[i]
+				var oldArri = oldArr[i] || []
+				if (newArri.length > oldArri.length) {
+					for (j = 0;j < newArri.length;j ++) {
+						var oldLine = oldArri[j]
+						var newLine = newArri[j]
+						jsonJoin(oldLine, newLine, 'new')
+						// if (oldLine === 0 || oldLine) {
+						// 	differenceJson.remove[oldLine] = { 'cols': {}, 'newRow': false }
+                    	// 	differenceJson.add[newLine] = { 'cols': {}, 'newRow': false }
+						// 	differenceJson = diffString(differenceJson, oldObj[oldLine], newObj[newLine], oldLine, newLine)
+						// 	canvasJson.diffLine[oldLine] = newLine
+						// } else {
+						// 	differenceJson.add[newLine] = { 'cols': { 0: newObj[newLine] }, 'newRow': true }
+						// 	canvasJson.addLine[newLine] = oldArri[oldArri.length - 1]
+						// }
+					}
+				} else {
+					for (j = 0;j < oldArri.length;j ++) {
+						var oldLine = oldArri[j]
+						var newLine = newArri[j]
+						jsonJoin(newLine, oldLine)
+						// if (newLine === 0 || newLine) {
+						// 	differenceJson.remove[oldLine] = { 'cols': {}, 'newRow': false }
+                    	// 	differenceJson.add[newLine] = { 'cols': {}, 'newRow': false }
+						// 	differenceJson = diffString(differenceJson, oldObj[oldLine], newObj[newLine], oldLine, newLine)
+						// 	canvasJson.diffLine[oldLine] = newLine
+						// } else {
+						// 	differenceJson.remove[oldLine] = { 'cols': { 0: oldObj[oldLine] }, 'newRow': true }
+						// 	canvasJson.delLine[oldLine] = newArri[newLine.length - 1]
+						// }
+					}
+				}
+			}
+		} else {
+			for (i = 0;i < oldArr.length;i ++) {
+				var newArri = newArr[i]
+				var oldArri = oldArr[i] || []
+				if (newArri.length > oldArri.length) {
+					for (j = 0;j < newArri.length;j ++) {
+						var oldLine = oldArri[j]
+						var newLine = newArri[j]
+						jsonJoin(oldLine, newLine, 'new')
+					}
+				} else {
+					for (j = 0;j < oldArri.length;j ++) {
+						var oldLine = oldArri[j]
+						var newLine = newArri[j]
+						jsonJoin(newLine, oldLine)
+					}
+				}
+			}
+		}
+    } else if (typeof (oldObj) === 'string' && typeof (newObj) === 'string') {
+		differenceJson = diffString(differenceJson, oldObj, newObj)
+		canvasJson.diffLine[0] = 0
+    }
+	console.log(differenceJson)
+	console.log(canvasJson)
+    return { differenceJson, canvasJson }
 }
 
 export function diffAddSpan(obj, arr) {
@@ -250,122 +317,71 @@ export function markdownRestore(newStr, historyArr, index) {
 }
 
 function canvasDataCreat(obj) {
-    var removeObj = obj.remove
-    var addObj = Object.assign({}, obj.add)
-    var cvObj = []
+	console.log(obj)
+    var diffLine = obj.diffLine
+    var delLine = obj.delLine
+    var addLine = obj.addLine
+    var cvDiff = []
+    var cvDel = []
+    var cvAdd = []
     var lPLen = document.getElementById('old_info').childElementCount - 1
-    var rPLen = document.getElementById('new_info').childElementCount - 1
-    for (var i in removeObj) {
-        i = Number(i)
-        var row = removeObj[i]
-        var rMax = i > rPLen ? rPLen : i
-        var rMax1 = i + 1 > rPLen ? rPLen : i + 1
-        var lastNew = {}
-        if (row.newRow) {
-            lastNew = {
-                lStartLine: i,
-                lEndLine: 1 + i,
-                rStartLine: rMax,
-                rEndLine: rMax
-            }
-        } else {
-            lastNew = {
-                lStartLine: i,
-                lEndLine: 1 + i,
-                rStartLine: rMax,
-                rEndLine: rMax1
-            }
+	var rPLen = document.getElementById('new_info').childElementCount - 1
+	for (var i in diffLine) {
+		var oldLine = Number(i)
+		var newLine = Number(diffLine[i])
+		var lMax = oldLine + 1 > lPLen ? lPLen : oldLine + 1
+		var rMax = newLine + 1 > rPLen ? rPLen : newLine + 1
+		var prev =  cvDiff[cvDiff.length - 1]
+		if (prev && (prev.lEndLine === oldLine || prev.rEndLine === newLine)) {
+			prev.lEndLine = lMax
+			prev.rEndLine = rMax
+		} else {
+			cvDiff.push({
+				lStartLine: oldLine,
+				lEndLine: lMax,
+				rStartLine: newLine,
+				rEndLine: rMax
+			})
+		}
+	}
 
-            if (addObj[i]) {
-                delete addObj[i]
-            }
-        }
-        cvObj.push(lastNew)
-    }
-    for (i in addObj) {
-        i = Number(i)
-        row = addObj[i]
-        var lMax = i > lPLen ? lPLen : i
-        var lMax1 = i + 1 > lPLen ? lPLen : i + 1
-        var lastNew = {}
-        if (row.newRow) {
-            lastNew = {
-                lStartLine: lMax,
-                lEndLine: lMax,
-                rStartLine: i,
-                rEndLine: 1 + i
-            }
-        } else {
-            lastNew = {
-                lStartLine: lMax,
-                lEndLine: lMax1,
-                rStartLine: i,
-                rEndLine: 1 + i
-            }
-        }
-        cvObj.push(lastNew)
-    }
-    for (i = 0; i >= 0 && i < cvObj.length - 1; i ++){
-        var fObj = cvObj[i]
-        for (var j = i + 1; j > 0 && j < cvObj.length; j ++ ) {
-            var sObj = cvObj[j]
-            var change = false
-            var spliceIndex = 0
-            if (sObj.lStartLine === fObj.lEndLine && sObj.rStartLine === fObj.rEndLine) {
-                fObj.lEndLine = sObj.lEndLine
-                fObj.rEndLine = sObj.rEndLine
-                spliceIndex = j
-                change = true
-            } else if (fObj.lStartLine === sObj.lEndLine && fObj.rStartLine === sObj.rEndLine) {
-                sObj.lEndLine = fObj.lEndLine
-                sObj.rEndLine = fObj.rEndLine
-                spliceIndex = i
-                change = true
-            } else if (fObj.lStartLine === sObj.lEndLine && sObj.rStartLine === sObj.rEndLine) {
-                // 删除整行
-                fObj.lStartLine = sObj.lStartLine
-                spliceIndex = j
-                change = true
-            } else if (fObj.lEndLine === sObj.lEndLine && sObj.rStartLine === sObj.rEndLine) {
-                fObj.lEndLine = sObj.lEndLine
-                spliceIndex = j
-                change = true
-            } else if (fObj.rEndLine === sObj.rStartLine && sObj.lStartLine === sObj.lEndLine) {
-                // 新增整行
-                fObj.rEndLine = sObj.rEndLine
-                spliceIndex = j
-                change = true
-            } else if (sObj.rEndLine === fObj.rStartLine && fObj.lStartLine === fObj.lEndLine) {
-                sObj.rEndLine = fObj.rEndLine
-                spliceIndex = i
-                change = true
-            } else if (fObj.rStartLine === sObj.rEndLine && sObj.lStartLine === sObj.lEndLine) {
-                fObj.rStartLine = sObj.rStartLine
-                spliceIndex = j
-                change = true
-            } else if (sObj.rStartLine === fObj.rEndLine && fObj.lStartLine === fObj.lEndLine) {
-                sObj.rStartLine = fObj.rStartLine
-                spliceIndex = i
-                change = true
-            } else if (sObj.lStartLine === fObj.lEndLine) {
-                fObj.rEndLine = sObj.rEndLine
-                spliceIndex = j
-                change = true
-            } else if (sObj.rStartLine === fObj.rEndLine) {
-                fObj.lEndLine = sObj.lEndLine
-                spliceIndex = j
-                change = true
-            }
-            if (change) {
-                spliceIndex = spliceIndex > -1 ? spliceIndex : 0
-                cvObj.splice(spliceIndex, 1)
-                i--
-                j--
-                change = false
-            }
-        }
-    }
+	for (i in delLine) {
+		var oldLine = Number(i)
+		var newLine = Number(delLine[i])
+		var lMax = oldLine + 1 > lPLen ? lPLen : oldLine + 1
+		var rMax = newLine + 1 > rPLen ? rPLen : newLine + 1
+		var prev =  cvDel[cvDel.length - 1]
+		if (prev && prev.lEndLine === oldLine) {
+			prev.lEndLine += 1
+		} else {
+			cvDel.push({
+				lStartLine: oldLine,
+				lEndLine: lMax,
+				rStartLine: rMax,
+				rEndLine: rMax
+			})
+		}
+	}
 
+	for (i in addLine) {
+		var oldLine = Number(addLine[i])
+		var newLine = Number(i)
+		var lMax = oldLine + 1 > lPLen ? lPLen : oldLine + 1
+		var rMax = newLine + 1 > rPLen ? rPLen : newLine + 1
+		var prev =  cvAdd[cvAdd.length - 1]
+		if (prev && prev.rEndLine === newLine) {
+			prev.rEndLine += 1
+		} else {
+			cvAdd.push({
+				lStartLine: lMax,
+				lEndLine: lMax,
+				rStartLine: newLine,
+				rEndLine: rMax
+			})
+		}
+	}
+	var cvObj = cvDiff.concat(cvDel, cvAdd)
+	console.log(cvObj)
     return cvObj
 }
 

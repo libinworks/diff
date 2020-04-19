@@ -3,7 +3,7 @@
     <diff
       :newContent="oldContent"
       :oldContent="newContent"
-      :diffBoxStyle="{ height: '100px' }"
+      :diffBoxStyle="{ height: '800px' }"
       @diffJson="diffJson"
     ></diff>
   </div>
@@ -19,9 +19,10 @@ bbb
 aaa
 sg
 sdf`,
-      oldContent: `sadfklj111
+      oldContent: `sadmfklj111
 bb
 aa
+fff
 sg
 dfh
 fh
@@ -29,11 +30,11 @@ dfg`
     }
   },
   mounted () {
-    console.log(this.$diffJson(this.oldContent, this.newContent))
+    // console.log(this.$diffJson(this.oldContent, this.newContent))
   },
   methods: {
     diffJson (r) {
-      console.log(r)
+      // console.log(r)
     }
   },
 }
