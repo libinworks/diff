@@ -133,6 +133,26 @@ export function diffJson(oldObj, newObj) {
     }
     var match1 = lcsObj.match1
 	var match2 = lcsObj.match2
+
+    if (Array.isArray(oldObj) && Array.isArray(newObj)) {
+		var oldArr = []
+		var newArr = []
+		var lock = true
+		var i = 0
+		var j = 0
+		moduleBreak(oldObj, oldArr, match1)
+		moduleBreak(newObj, newArr, match2)
+
+		if (newArr.length > oldArr.length) {
+			longEach(newArr)
+		} else {
+			longEach(oldArr)
+		}
+    } else if (typeof (oldObj) === 'string' && typeof (newObj) === 'string') {
+		differenceJson = diffString(differenceJson, oldObj, newObj)
+		canvasJson.diffLine[0] = 0
+	}
+
 	function moduleBreak (obj, arr, match) {
 		for (i = 0; i < obj.length; i++) {
 			if (match.indexOf(i) > -1) {
@@ -148,89 +168,39 @@ export function diffJson(oldObj, newObj) {
 		}
 		lock = true
 	}
-	function jsonJoin (line1, line2, type1) {
+
+	function jsonJoin (line1, line2, arri, obj) {
 		if (line1 === 0 || line1) {
 			differenceJson.remove[line1] = { 'cols': {}, 'newRow': false }
 			differenceJson.add[line2] = { 'cols': {}, 'newRow': false }
 			differenceJson = diffString(differenceJson, oldObj[line1], newObj[line2], line1, line2)
 			canvasJson.diffLine[line1] = line2
 		} else {
-			var str = type1 === 'old' ? newObj[line2] : oldObj[line2]
-			differenceJson.add[line2] = { 'cols': { 0: str }, 'newRow': true }
-			canvasJson.addLine[line2] = oldArri[oldArri.length - 1]
+			differenceJson.add[line2] = { 'cols': { 0: obj[line2] }, 'newRow': true }
+			canvasJson.addLine[line2] = arri[arri.length - 1]
 		}
 	}
-    if (Array.isArray(oldObj) && Array.isArray(newObj)) {
-		var oldArr = []
-		var newArr = []
-		var lock = true
-		var i = 0
-		var j = 0
-		moduleBreak(oldObj, oldArr, match1)
-		moduleBreak(newObj, newArr, match2)
 
-		console.log(oldArr,newArr)
-		if (newArr.length > oldArr.length) {
-			for (i = 0;i < newArr.length;i ++) {
-				var newArri = newArr[i]
-				var oldArri = oldArr[i] || []
-				if (newArri.length > oldArri.length) {
-					for (j = 0;j < newArri.length;j ++) {
-						var oldLine = oldArri[j]
-						var newLine = newArri[j]
-						jsonJoin(oldLine, newLine, 'new')
-						// if (oldLine === 0 || oldLine) {
-						// 	differenceJson.remove[oldLine] = { 'cols': {}, 'newRow': false }
-                    	// 	differenceJson.add[newLine] = { 'cols': {}, 'newRow': false }
-						// 	differenceJson = diffString(differenceJson, oldObj[oldLine], newObj[newLine], oldLine, newLine)
-						// 	canvasJson.diffLine[oldLine] = newLine
-						// } else {
-						// 	differenceJson.add[newLine] = { 'cols': { 0: newObj[newLine] }, 'newRow': true }
-						// 	canvasJson.addLine[newLine] = oldArri[oldArri.length - 1]
-						// }
-					}
-				} else {
-					for (j = 0;j < oldArri.length;j ++) {
-						var oldLine = oldArri[j]
-						var newLine = newArri[j]
-						jsonJoin(newLine, oldLine)
-						// if (newLine === 0 || newLine) {
-						// 	differenceJson.remove[oldLine] = { 'cols': {}, 'newRow': false }
-                    	// 	differenceJson.add[newLine] = { 'cols': {}, 'newRow': false }
-						// 	differenceJson = diffString(differenceJson, oldObj[oldLine], newObj[newLine], oldLine, newLine)
-						// 	canvasJson.diffLine[oldLine] = newLine
-						// } else {
-						// 	differenceJson.remove[oldLine] = { 'cols': { 0: oldObj[oldLine] }, 'newRow': true }
-						// 	canvasJson.delLine[oldLine] = newArri[newLine.length - 1]
-						// }
-					}
+	function longEach (arr) {
+		for (i = 0;i < arr.length;i ++) {
+			var newArri = newArr[i] || []
+			var oldArri = oldArr[i] || []
+			if (newArri.length > oldArri.length) {
+				for (j = 0;j < newArri.length;j ++) {
+					var oldLine = oldArri[j]
+					var newLine = newArri[j]
+					jsonJoin(oldLine, newLine, oldArri, newObj)
 				}
-			}
-		} else {
-			for (i = 0;i < oldArr.length;i ++) {
-				var newArri = newArr[i]
-				var oldArri = oldArr[i] || []
-				if (newArri.length > oldArri.length) {
-					for (j = 0;j < newArri.length;j ++) {
-						var oldLine = oldArri[j]
-						var newLine = newArri[j]
-						jsonJoin(oldLine, newLine, 'new')
-					}
-				} else {
-					for (j = 0;j < oldArri.length;j ++) {
-						var oldLine = oldArri[j]
-						var newLine = newArri[j]
-						jsonJoin(newLine, oldLine)
-					}
+			} else {
+				for (j = 0;j < oldArri.length;j ++) {
+					var oldLine = oldArri[j]
+					var newLine = newArri[j]
+					jsonJoin(newLine, oldLine, newArri, oldObj)
 				}
 			}
 		}
-    } else if (typeof (oldObj) === 'string' && typeof (newObj) === 'string') {
-		differenceJson = diffString(differenceJson, oldObj, newObj)
-		canvasJson.diffLine[0] = 0
-    }
-	console.log(differenceJson)
-	console.log(canvasJson)
+	}
+	
     return { differenceJson, canvasJson }
 }
 
