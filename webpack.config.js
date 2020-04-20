@@ -2,8 +2,8 @@ var path = require('path')
 var webpack = require('webpack')
 
 module.exports = {
-  entry: './src/main.js',
-  // entry: './src/lib/index.js',
+  // entry: './src/main.js',
+  entry: './src/lib/index.js',
   output: {
     path: path.resolve(__dirname, './dist'),
     publicPath: '/dist/',
@@ -72,7 +72,9 @@ if (process.env.NODE_ENV === 'production') {
     new webpack.optimize.UglifyJsPlugin({
       sourceMap: true,
       compress: {
-        warnings: false
+        warnings: false,
+        drop_debugger: true, 
+        drop_console: true   
       }
     }),
     new webpack.LoaderOptionsPlugin({

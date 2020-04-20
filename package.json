@@ -1,8 +1,9 @@
 {
   "name": "li-diff",
   "description": "文本对比",
-  "version": "1.0.0",
+  "version": "1.0.6",
   "author": "Li",
+  "keywords": ["diff", "js", "javaScript", "canvas"],
   "license": "MIT",
   "private": false,
   "main": "dist/diff.js",
