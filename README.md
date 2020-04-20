@@ -2,6 +2,9 @@
 
 > 新旧版本的对比，突出差异，使用canvas的贝塞尔曲线连接
 
+## 效果
+![效果展示](https://raw.githubusercontent.com/libinworks/diff/master/src/assets/eg1.png)
+
 ## 引入方式
 
 > npm install li-diff --save
