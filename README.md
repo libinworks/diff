@@ -23,12 +23,14 @@ components: { diff }
 ```
 ## 参数
 1. API
+
 参数 | 类型 | 默认值 | 说明
 -|-|-|-
 oldContent | string | 无 | 旧内容 |
 newContent | string | 无 | 新内容 |
 diffBoxStyle | object | {} | 最外层盒子样式 |
 2. 事件
+
 事件名 | 说明 | 回调参数
 -|-|-
 diffJson | 差异结果 | function(json)
