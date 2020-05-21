@@ -1,6 +1,6 @@
 # diff
 
-> 新旧版本的对比，突出差异，使用canvas的贝塞尔曲线连接
+> 新旧版本的对比，突出差异，使用canvas的贝塞尔曲线连接,暂仅支持纯文本
 
 ## 效果
 ![效果展示](https://raw.githubusercontent.com/libinworks/diff/master/src/assets/eg1.png)
